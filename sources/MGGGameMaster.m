@@ -41,8 +41,7 @@
             if (black==white) { // 引き分け
                 text=@"A tied game.";
             } else {
-                text=[NSString stringWithFormat:@"WINNER : %dP",(black>white ? BLACK : WHITE)];
-                winner=black>white ? BLACK : WHITE;
+                text=[NSString stringWithFormat:@"WINNER : %dP",(winner = black>white ? BLACK : WHITE)];
             }
             [self announceResult:text];
         }

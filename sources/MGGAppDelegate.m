@@ -181,10 +181,11 @@
         NSMutableArray *tmpA=[outlets objectAtIndex:i];
         for (j=0; j<WIDTH; j++) {
             NSButton *tmpB=[tmpA objectAtIndex:j];
-            if ((i==WIDTH/2 || i==WIDTH/2-1) && i==j) {
-                [tmpB setImage:[NSImage imageNamed:@"white.jpg"]];
-            } else if ((i==WIDTH/2 && j==WIDTH/2-1) || (i==WIDTH/2-1 && j==WIDTH/2)) {
+            if ((i==WIDTH/2 || i==WIDTH/2-1) && (j==WIDTH/2 || j==WIDTH/2-1)) {
                 [tmpB setImage:[NSImage imageNamed:@"black.jpg"]];
+                if(i==j){
+                    [tmpB setImage:[NSImage imageNamed:@"white.jpg"]];
+                }
             } else {
                 [tmpB setImage:tmpI];
             }
