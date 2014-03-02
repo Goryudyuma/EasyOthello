@@ -451,7 +451,7 @@
 
 - (void)changeTurn
 {
-    turn=turn==1 ? 2 : 1;
+    turn=2/turn;
 }
 
 - (int)countPieceOf:(int)whom
