@@ -1,10 +1,4 @@
-//
-//  MGGAppDelegate.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGAppDelegate.h"
 #import "MGGPiece.h"
@@ -16,32 +10,32 @@
 
 @implementation MGGAppDelegate
 
+
 @synthesize outlets;
 @synthesize p00,p01,p02,p03,p04,p05,p06,p07,p10,p11,p12,p13,p14,p15,p16,p17,p20,p21,p22,p23,p24,p25,p26,p27,p30,p31,p32,p33,p34,p35,p36,p37,p40,p41,p42,p43,p44,p45,p46,p47,p50,p51,p52,p53,p54,p55,p56,p57,p60,p61,p62,p63,p64,p65,p66,p67,p70,p71,p72,p73,p74,p75,p76,p77;
 
 // アプリ起動時の挙動
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-    // Insert code here to initialize your application
     // アウトレット集を作成
-    NSMutableArray *col0=[NSMutableArray arrayWithObjects:
-                          p00,p01,p02,p03,p04,p05,p06,p07, nil];
-    NSMutableArray *col1=[NSMutableArray arrayWithObjects:
-                          p10,p11,p12,p13,p14,p15,p16,p17, nil];
-    NSMutableArray *col2=[NSMutableArray arrayWithObjects:
-                          p20,p21,p22,p23,p24,p25,p26,p27, nil];
-    NSMutableArray *col3=[NSMutableArray arrayWithObjects:
-                          p30,p31,p32,p33,p34,p35,p36,p37, nil];
-    NSMutableArray *col4=[NSMutableArray arrayWithObjects:
-                          p40,p41,p42,p43,p44,p45,p46,p47, nil];
-    NSMutableArray *col5=[NSMutableArray arrayWithObjects:
-                          p50,p51,p52,p53,p54,p55,p56,p57, nil];
-    NSMutableArray *col6=[NSMutableArray arrayWithObjects:
-                          p60,p61,p62,p63,p64,p65,p66,p67, nil];
-    NSMutableArray *col7=[NSMutableArray arrayWithObjects:
-                          p70,p71,p72,p73,p74,p75,p76,p77, nil];
-    outlets=[NSMutableArray arrayWithObjects:
-             col0,col1,col2,col3,col4,col5,col6,col7, nil];
+    outlets=[NSMutableArray array];
+    NSMutableArray *tmpRow;
+    tmpRow=[NSMutableArray arrayWithObjects:p00,p01,p02,p03,p04,p05,p06,p07, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p10,p11,p12,p13,p14,p15,p16,p17, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p20,p21,p22,p23,p24,p25,p26,p27, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p30,p31,p32,p33,p34,p35,p36,p37, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p40,p41,p42,p43,p44,p45,p46,p47, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p50,p51,p52,p53,p54,p55,p56,p57, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p60,p61,p62,p63,p64,p65,p66,p67, nil];
+    [outlets addObject:tmpRow];
+    tmpRow=[NSMutableArray arrayWithObjects:p70,p71,p72,p73,p74,p75,p76,p77, nil];
+    [outlets addObject:tmpRow];
     
     // 新規対局用に初期化
     mainBoard=[[MGGBoard alloc] initWithNewGame];
@@ -49,6 +43,7 @@
     secondPlayer=[[MGGPlayer alloc] initForSecondPlayer];
     ourMaster=[[MGGGameMaster alloc] initWithNewGame];
     ourStrage=[[MGGStrage alloc] initWithNewGame];
+    frequency=1;
     
     // プレーヤーの手番に入る
     [self playerTurnIsStarted];
@@ -84,7 +79,7 @@
                 // 入力待ちを飛ばして手番終了処理へ
                 [self playerTurnWillBeFinishedWithCandidate:[firstPlayer putOnThisCoordinate:mainBoard byAI:[ourStrage.AIArray objectAtIndex:0]]];
             } else if (mainBoard.turn==2 && !secondPlayer.isManual) {
-                [self playerTurnWillBeFinishedWithCandidate:[secondPlayer putOnThisCoordinate:mainBoard byAI:[ourStrage.AIArray objectAtIndex:0]]];
+                [self playerTurnWillBeFinishedWithCandidate:[secondPlayer putOnThisCoordinate:mainBoard byAI:[ourStrage.AIArray objectAtIndex:1]]];
             }
             
             // 手動の場合このままて入力待ちへ
@@ -96,8 +91,16 @@
             [self playerTurnIsStarted];
         }
     } else { // ゲーム終了
-        // 棋譜の最後を編集
-        [ourStrage addFinalStringWithWinner:ourMaster.winner];
+        if (![ourStrage writeAndOutputRecordOf:ourMaster.winner andRemain:ourMaster.frequency]) {
+            // まだ続行のとき
+            mainBoard=[[MGGBoard alloc] initWithNewGame];
+            int tmp=ourMaster.frequency;
+            ourMaster=[[MGGGameMaster alloc] initWithNewGame];
+            ourMaster.frequency=tmp;
+            [self playerTurnIsStarted];
+        }
+            // 棋譜の最後を編集
+            [ourStrage addFinalStringWithWinner:ourMaster.winner];
     }
 }
 
@@ -173,25 +176,22 @@
     mainBoard=[[MGGBoard alloc] initWithNewGame];
     ourMaster=[[MGGGameMaster alloc] initWithNewGame];
     ourStrage=[[MGGStrage alloc] initWithNewGame];
+    ourMaster.frequency=frequency;
     
     // 盤面の画像を初期化
-    NSImage *tmpI=[NSImage imageNamed:@"green.jpg"];
+    NSImage *tmpImage=[NSImage imageNamed:@"green.jpg"];
     int i,j;
     for (i=0; i<WIDTH; i++) {
-        NSMutableArray *tmpA=[outlets objectAtIndex:i];
         for (j=0; j<WIDTH; j++) {
-            NSButton *tmpB=[tmpA objectAtIndex:j];
-            if ((i==WIDTH/2 || i==WIDTH/2-1) && (j==WIDTH/2 || j==WIDTH/2-1)) {
-                [tmpB setImage:[NSImage imageNamed:@"black.jpg"]];
-                if(i==j){
-                    [tmpB setImage:[NSImage imageNamed:@"white.jpg"]];
-                }
+            NSButton *tmpButton=[[outlets objectAtIndex:i] objectAtIndex:j];
+            if ((i==WIDTH/2 || i==WIDTH/2-1) && i==j) {
+                [tmpButton setImage:[NSImage imageNamed:@"white.jpg"]];
+            } else if ((i==WIDTH/2 && j==WIDTH/2-1) || (i==WIDTH/2-1 && j==WIDTH/2)) {
+                [tmpButton setImage:[NSImage imageNamed:@"black.jpg"]];
             } else {
-                [tmpB setImage:tmpI];
+                [tmpButton setImage:tmpImage];
             }
-            [tmpA replaceObjectAtIndex:j withObject:tmpB];
         }
-        [outlets replaceObjectAtIndex:i withObject:tmpA];
     }
     
     // 手番へ
@@ -206,34 +206,41 @@
     if (!ourMaster.isOnGame) {
         // ドキュメントを保存する標準ディレクトリへのパスを生成する
         NSString *filePath=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-        // フィアル名はEasyOhtello+時刻にする
-        NSString *fileName=@"EasyOhello";
+        // フィアル名はEasyOthello+時刻にする
+        NSString *fileName=@"EasyOthello";
         NSDateFormatter *tmpDF=[NSDateFormatter new];
         [tmpDF setDateFormat:@"yyyMMddHHmmssSSS"];
         fileName=[fileName stringByAppendingString:[tmpDF stringFromDate:[NSDate date]]];
         // ファイル形式についての選択
-        NSAlert *select=[NSAlert alertWithMessageText:@"SELECT" defaultButton:@".plist" alternateButton:@".csv" otherButton:nil informativeTextWithFormat:@"Which file format will you use?"];
+        NSAlert *select=[NSAlert alertWithMessageText:@"SELECT" defaultButton:@".plist" alternateButton:@"Cancel" otherButton:@".csv" informativeTextWithFormat:@"Which file format will you use?"];
         NSModalResponse retValue=[select runModal];
         if (retValue==NSAlertDefaultReturn) {
             fileName=[fileName stringByAppendingString:@".plist"];
-        } else if (retValue==NSAlertAlternateReturn) {
+        } else if (retValue==NSAlertOtherReturn) {
             fileName=[fileName stringByAppendingString:@".csv"];
         }
-        filePath=[filePath stringByAppendingPathComponent:fileName];
-        
-        NSString *text;
-        // ファイル生成と報告
-        if ([ourStrage createRecordFileAt:filePath withFormat:retValue]) {
-            text=[NSString stringWithFormat:@"A record file is created at %@",filePath];
-        } else {
-            text=@"Creating a record file is failed.";
+        if (retValue!=NSAlertAlternateReturn) {
+            filePath=[filePath stringByAppendingPathComponent:fileName];
+            
+            NSString *text;
+            // ファイル生成と報告
+            if ([ourStrage createRecordFileAt:filePath withFormat:retValue]) {
+                text=[NSString stringWithFormat:@"A record file is created at %@",filePath];
+            } else {
+                text=@"Creating a record file is failed.";
+            }
+            
+            NSAlert *attention=[NSAlert alertWithMessageText:@"Attention" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"%@",text];
+            
+            [attention runModal];
         }
-        
-        NSAlert *attention=[NSAlert alertWithMessageText:@"Attention" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"%@",text];
-        
-        [attention runModal];
 
     }
 }
 
+- (IBAction)doManyGames:(id)sender
+{
+    frequency=[sender intValue];
+    NSLog(@"%u",(unsigned)frequency);
+}
 @end

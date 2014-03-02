@@ -1,10 +1,4 @@
-//
-//  MGGAppDelegate.h
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import <Cocoa/Cocoa.h>
 #import "MGGBoard.h"
@@ -25,10 +19,11 @@
     MGGGameMaster *ourMaster; // ゲームの状況判断を司る
     MGGStrage *ourStrage; // 各種記録を格納するためのオブジェクト
     NSArray *candidate; // うてる場所一覧
+    int frequency; // 何連戦するか
 }
 
 @property (assign) IBOutlet NSWindow *window;
-@property NSMutableArray *outlets;
+@property (readonly) NSMutableArray *outlets;
 
 
 // 盤面のアウトレット
@@ -103,6 +98,7 @@
 - (IBAction)changeManual:(NSButton *)sender; // 手動かAIか切り替える tag==1:黒 2:白
 - (IBAction)putPiece:(NSButton *)sender; //手動時の駒おき
 - (IBAction)startNewGame:(NSButton *)sender; // NewGameボタンを押した時の挙動
-- (IBAction)createRecordFile:(NSButton *)sender; // 棋譜をplistファイル形式で生成する
+- (IBAction)createRecordFile:(NSButton *)sender; // 棋譜をplist or csvファイル形式で生成する
+- (IBAction)doManyGames:(id)sender;
 
 @end

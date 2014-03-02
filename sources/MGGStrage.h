@@ -1,10 +1,4 @@
-//
-//  MGGStrage.h
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/28.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import <Foundation/Foundation.h>
 #import "MGGBoard.h"
@@ -14,11 +8,13 @@
 @interface MGGStrage : NSObject
 {
     NSMutableArray *gameRecord; // 棋譜の記録のための可変配列
+    NSMutableArray *freqRecord; // 連戦時の勝敗記録
     NSArray *AIArray; // AI集
 }
 
 @property (readonly) NSArray *AIArray;
 @property (readonly) NSMutableArray *gameRecord;
+@property (readonly) NSMutableArray *freqRecord;
 
 - (id)initWithNewGame; // 新規対局用の初期化
 
@@ -32,4 +28,6 @@
 // 成功するとYESを返す
 // 最後の仮引数はファイル形式について。NSAlertDefaultReturn:.plist NSAlertAlternateReturn:.csv
 - (BOOL)createRecordFileAt:(NSString *)pass withFormat:(NSModalResponse)format;
+// 連戦時の勝敗記録、書き出し
+- (BOOL)writeAndOutputRecordOf:(int)winner andRemain:(int)freq;
 @end

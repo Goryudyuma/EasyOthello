@@ -1,10 +1,4 @@
-//
-//  MGGPlayer.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGPlayer.h"
 #import "MGGSampleAI.h"
@@ -34,8 +28,9 @@
 - (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard byAI:(id)myAI
 {
     NSNumber *myCoordinate;
+    //MGGBoard *AIBoard=[[MGGBoard alloc] createCopyOf:aBoard];
     
-    myCoordinate=[myAI whereShouldIPutOn:aBoard]; // 書き換え部分
+    myCoordinate=[myAI whereShouldIPutOn:[[MGGBoard alloc] createCopyOf:aBoard]]; // 書き換え部分
     
     return myCoordinate;
 }

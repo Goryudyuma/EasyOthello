@@ -1,27 +1,25 @@
-//
-//  MGGStrage.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/28.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGStrage.h"
 #import "MGGSampleAI.h"
+#import "MGG1AI.h"
 #import <stdio.h>
 
 @class MGGSampleAI;
+@class MGG1AI;
 
 @implementation MGGStrage
 
 @synthesize AIArray;
 @synthesize gameRecord;
+@synthesize freqRecord;
 
 - (id)initWithNewGame
 {
     gameRecord=[NSMutableArray array];
+    freqRecord=[NSMutableArray array];
     AIArray=[NSArray arrayWithObjects:
-             [MGGSampleAI new], nil];
+             [MGGSampleAI new],[MGG1AI new], nil];
     
     return self;
 }
@@ -53,7 +51,7 @@
     
     if (format==NSAlertDefaultReturn) { // .plist
         comp=[gameRecord writeToFile:pass atomically:YES];
-    } else if (format==NSAlertAlternateReturn) { // .csv
+    } else if (format==NSAlertOtherReturn) { // .csv
         FILE *fp;
         fp=fopen([pass UTF8String],"w");
         fprintf(fp," \n");
@@ -109,5 +107,34 @@
     NSUInteger last=[gameRecord count]-1; // 最後の要素番号
     // 最後はパスになっているのでそれと置き換える
     [gameRecord replaceObjectAtIndex:last withObject:text];
+}
+
+- (BOOL)writeAndOutputRecordOf:(int)winner andRemain:(int)freq
+{
+    BOOL comp=NO;
+    
+        NSString *text=[NSString stringWithFormat:@"\"%d\",\"%d\"",freq,winner];
+        [freqRecord addObject:text];
+    if (freq<=1) {
+        NSString *path=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        NSDateFormatter *fileDF=[NSDateFormatter new];
+        [fileDF setDateFormat:@"yyyMMddHHmmssSSS"];
+        NSString *filename=@"EasyOthello";
+        filename=[filename stringByAppendingString:[fileDF stringFromDate:[NSDate date]]];
+        filename=[filename stringByAppendingString:@".csv"];
+        path=[path stringByAppendingPathComponent:filename];
+        FILE *fp;
+        fp=fopen([path UTF8String],"w");
+        fprintf(fp," \n");
+        fclose(fp);
+        fp=fopen([path UTF8String],"a");
+        for (NSString *tmp in freqRecord) {
+            fprintf(fp,"%s\n",[tmp UTF8String]);
+        }
+        comp=YES;
+        fclose(fp);
+    }
+    
+    return comp;
 }
 @end

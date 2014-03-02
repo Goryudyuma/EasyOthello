@@ -1,10 +1,4 @@
-//
-//  MGGGameMaster.h
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/28.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import <Foundation/Foundation.h>
 #import "MGGBoard.h"
@@ -16,11 +10,13 @@
     unsigned passCount; // 連続パスの回数
     BOOL isOnGame; // ゲーム中であるか
     int winner; // 勝者。０：引き分け 1:黒 2:白
+    unsigned frquency; // 連戦数
 }
 
 @property (readonly) BOOL isOnGame;
 @property (readonly) unsigned passCount;
 @property (readonly) int winner;
+@property unsigned frequency;
 
 - (id)initWithNewGame; // 初期化
 

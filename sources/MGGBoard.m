@@ -1,10 +1,4 @@
-//
-//  MGGBoard.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGBoard.h"
 #import "MGGPiece.h"
@@ -46,6 +40,23 @@
     return self;
 }
 
+- (id)createCopyOf:(MGGBoard *)aBoard
+{
+    turn=aBoard.turn;
+    board=[NSMutableArray array];
+    int i,j;
+    for (i=0; i<WIDTH; i++) {
+        NSMutableArray *tmpA=[NSMutableArray array];
+        for (j=0; j<WIDTH; j++) {
+            MGGPiece *tmpP=[[MGGPiece alloc] createCopyOf:[[aBoard.board objectAtIndex:i] objectAtIndex:j]];
+            [tmpA addObject:tmpP];
+        }
+        [board addObject:tmpA];
+    }
+    
+    return self;
+}
+
 - (BOOL)canIPutOn:(NSNumber *)aCoordinate
 {
     // 座標を取得
@@ -57,7 +68,7 @@
     // 誰の駒であるかYES,NOで返すブロック
     // 仮引数は順に,Y座標,X座標,誰(0:空白 1:黒 2:白)
     BOOL (^whoseBlock)(int,int,int)=^(int a, int b, int whose) {
-        __block BOOL isWho=NO;
+        BOOL isWho=NO;
         MGGPiece *tmpP2=[[board objectAtIndex:a] objectAtIndex:b];
         if (tmpP2.belong==whose) {
             isWho=YES;
@@ -206,15 +217,12 @@
         NSMutableArray *tmpCol=[board objectAtIndex:i];
         for (j=0; j<WIDTH; j++) {
             MGGPiece *tmpPiece=[tmpCol objectAtIndex:j];
-            tmpPiece.canPut=[self canIPutOn:[NSNumber numberWithInt:(i*10+j)]]; // 更新
+            NSNumber *tmpNum=[NSNumber numberWithInt:(i*10+j)];
+            tmpPiece.canPut=[self canIPutOn:tmpNum]; // 更新
             if (tmpPiece.canPut) {
-                [myCandidate addObject:[NSNumber numberWithInt:(i*10+j)]];
+                [myCandidate addObject:tmpNum];
             }
-            // 更新したものに置き換える
-            [tmpCol replaceObjectAtIndex:j withObject:tmpPiece];
         }
-        // 更新したものに置き換える
-        [board replaceObjectAtIndex:i withObject:tmpCol];
     }
     
     // うてる場所がなかった場合、空の配列がかえる
@@ -235,12 +243,9 @@
     tmpP.belong=turn;
     tmpP.canPut=NO;
     
-    [tmpA replaceObjectAtIndex:x withObject:tmpP];
-    [board replaceObjectAtIndex:y withObject:tmpA];
-    
     // 上から時計回りに走査してひっくり返していく
     BOOL (^whoseBlock)(int,int,int)=^(int a, int b, int whose) {
-        __block BOOL isWho=NO;
+        BOOL isWho=NO;
         MGGPiece *tmpP2=[[board objectAtIndex:a] objectAtIndex:b];
         if (tmpP2.belong==whose) {
             isWho=YES;
@@ -277,14 +282,10 @@
                 }
                 if (k==0 && i>=0 && j>=0) { // ひっくり返せるとき
                     for (i++,j++; i<y; i++,j++) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]]; // ひっくり返したところリストに追加
-                        // board更新
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -300,13 +301,10 @@
                 }
                 if (k==0 && i>=0) {
                     for (i++; i<y; i++) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -322,13 +320,10 @@
                 }
                 if (k==0 && i>=0 && j<WIDTH) {
                     for (i++,j--; i<y; i++,j--) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -344,13 +339,10 @@
                 }
                 if (k==0 && j>=0) {
                     for (j++; j<x; j++) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -366,13 +358,10 @@
                 }
                 if (k==0 && j<WIDTH) {
                     for (j--; j>x; j--) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -388,13 +377,10 @@
                 }
                 if (k==0 && i<WIDTH && j>=0) {
                     for (i--,j++; i>y; i--,j++) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -410,13 +396,10 @@
                 }
                 if (k==0 && i<WIDTH) {
                     for (i--; i>y; i--)  {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -432,13 +415,10 @@
                 }
                 if (k==0 && i<WIDTH && j<WIDTH) {
                     for (i--,j--; i>y; i--,j--) {
-                        tmpA=[board objectAtIndex:i];
-                        tmpP=[tmpA objectAtIndex:j];
+                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
                         tmpP.belong=turn;
                         tmpP.canPut=NO;
                         [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                        [tmpA replaceObjectAtIndex:j withObject:tmpP];
-                        [board replaceObjectAtIndex:i withObject:tmpA];
                     }
                 }
                 break;
@@ -451,7 +431,7 @@
 
 - (void)changeTurn
 {
-    turn=2/turn;
+    turn=turn==BLACK ? WHITE : BLACK;
 }
 
 - (int)countPieceOf:(int)whom

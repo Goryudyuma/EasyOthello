@@ -1,10 +1,4 @@
-//
-//  MGGGameMaster.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/28.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGGameMaster.h"
 #define BLACK 1
@@ -15,6 +9,7 @@
 @synthesize isOnGame;
 @synthesize passCount;
 @synthesize  winner;
+@synthesize frequency;
 
 - (id)initWithNewGame
 {
@@ -41,9 +36,11 @@
             if (black==white) { // 引き分け
                 text=@"A tied game.";
             } else {
-                text=[NSString stringWithFormat:@"WINNER : %dP",(winner = black>white ? BLACK : WHITE)];
+                text=[NSString stringWithFormat:@"WINNER : %dP",(winner=black>white ? BLACK : WHITE)];
             }
-            [self announceResult:text];
+            if (1==frequency--) {
+                [self announceResult:text];
+            }
         }
     } else { // パスでない
         passCount=0; // カウンタリセット

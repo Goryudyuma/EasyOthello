@@ -1,10 +1,4 @@
-//
-//  MGGPiece.h
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import <Foundation/Foundation.h>
 
@@ -18,5 +12,7 @@
 @property BOOL canPut;
 
 - (id)initWithNewGame; // 新規対局用に初期化（空白、うてない）
+
+- (id)createCopyOf:(MGGPiece *)aPiece; // コピーを作る
 
 @end
