@@ -28,6 +28,7 @@
         passCount++;
         if (passCount==2) { // ２連続パスで終局
             isOnGame=NO;
+            frequency= frequency>0 ? --frquency : 0;
             
             // 勝者を決めるため盤面上の駒の数を数える
             int black=[aBoard countPieceOf:BLACK];
@@ -38,7 +39,7 @@
             } else {
                 text=[NSString stringWithFormat:@"WINNER : %dP",(winner=black>white ? BLACK : WHITE)];
             }
-            if (1==frequency--) {
+            if (frequency==0) {
                 [self announceResult:text];
             }
         }

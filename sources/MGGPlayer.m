@@ -8,30 +8,26 @@
 @implementation MGGPlayer
 
 @synthesize isManual;
+@synthesize myAI;
 
-- (id)initForFirstPlayer
+- (id)initForPlayer:(int)myTurn
 {
-    turn=1;
+    turn=myTurn;
     isManual=YES;
+    myAI=nil;
     
     return self;
 }
 
-- (id)initForSecondPlayer
-{
-    turn=2;
-    isManual=YES;
-    
-    return self;
-}
 
-- (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard byAI:(id)myAI
+- (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard
 {
     NSNumber *myCoordinate;
     //MGGBoard *AIBoard=[[MGGBoard alloc] createCopyOf:aBoard];
     
-    myCoordinate=[myAI whereShouldIPutOn:[[MGGBoard alloc] createCopyOf:aBoard]]; // 書き換え部分
+    myCoordinate=[myAI whereShouldIPutOn:[[MGGBoard alloc] createCopyOf:aBoard]];
     
-    return myCoordinate;
+    // 不正な場所をAIが指定した場合はnilを返す
+    return [aBoard canIPutOn:myCoordinate] ? myCoordinate : nil;
 }
 @end

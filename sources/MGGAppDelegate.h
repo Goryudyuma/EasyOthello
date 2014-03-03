@@ -1,4 +1,4 @@
-﻿
+
 
 #import <Cocoa/Cocoa.h>
 #import "MGGBoard.h"
@@ -20,11 +20,11 @@
     MGGStrage *ourStrage; // 各種記録を格納するためのオブジェクト
     NSArray *candidate; // うてる場所一覧
     int frequency; // 何連戦するか
+    BOOL isFreq; // 連戦か単戦か
 }
 
 @property (assign) IBOutlet NSWindow *window;
 @property (readonly) NSMutableArray *outlets;
-
 
 // 盤面のアウトレット
 @property (weak) IBOutlet NSButton *p00;
@@ -92,10 +92,15 @@
 @property (weak) IBOutlet NSButton *p76;
 @property (weak) IBOutlet NSButton *p77;
 
+// 枚数を表示
+@property (weak) IBOutlet NSTextField *firstCounter;
+@property (weak) IBOutlet NSTextField *secondCounter;
+
+
 - (void)playerTurnIsStarted; // 手番開始の処理
 - (void)playerTurnWillBeFinishedWithCandidate:(NSNumber *)aCand; // 手番終了の処理
 
-- (IBAction)changeManual:(NSButton *)sender; // 手動かAIか切り替える tag==1:黒 2:白
+- (IBAction)changeManual:(id)sender; // 手動かAIか切り替える tag==1:黒 2:白
 - (IBAction)putPiece:(NSButton *)sender; //手動時の駒おき
 - (IBAction)startNewGame:(NSButton *)sender; // NewGameボタンを押した時の挙動
 - (IBAction)createRecordFile:(NSButton *)sender; // 棋譜をplist or csvファイル形式で生成する

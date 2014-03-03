@@ -18,10 +18,9 @@
 {
     board=[NSMutableArray array];
     
-    int i,j;
-    for (i=0; i<WIDTH; i++) {
+    for (int i=0; i<WIDTH; i++) {
         NSMutableArray *tmpA=[NSMutableArray array];
-        for (j=0; j<WIDTH; j++) {
+        for (int j=0; j<WIDTH; j++) {
             MGGPiece *tmpP=[[MGGPiece alloc] initWithNewGame];
             if ((i==-1+WIDTH/2 && i==j) || (i==WIDTH/2 && i==j)) { // 白
                 tmpP.belong=2;
@@ -35,20 +34,20 @@
         [board addObject:tmpA];
     }
     
-    turn=1;
+    turn=BLACK;
     
     return self;
 }
+
 
 - (id)createCopyOf:(MGGBoard *)aBoard
 {
     turn=aBoard.turn;
     board=[NSMutableArray array];
-    int i,j;
-    for (i=0; i<WIDTH; i++) {
+    for (NSMutableArray *row in aBoard.board) {
         NSMutableArray *tmpA=[NSMutableArray array];
-        for (j=0; j<WIDTH; j++) {
-            MGGPiece *tmpP=[[MGGPiece alloc] createCopyOf:[[aBoard.board objectAtIndex:i] objectAtIndex:j]];
+        for (MGGPiece *origin in row) {
+            MGGPiece *tmpP=[[MGGPiece alloc] createCopyOf:origin];
             [tmpA addObject:tmpP];
         }
         [board addObject:tmpA];
@@ -57,170 +56,101 @@
     return self;
 }
 
-- (BOOL)canIPutOn:(NSNumber *)aCoordinate
+- (BOOL)whosePiece:(int)whose atCoordinate:(NSNumber *)aCoordinate
 {
+    int y=[aCoordinate intValue]/10;
+    int x=[aCoordinate intValue]%10;
+    
+    MGGPiece *tmp=[[board objectAtIndex:y] objectAtIndex:x];
+    
+    return tmp.belong==whose ? YES : NO;
+}
+
+
+// flag==YESでひっくり返す、NOで走査のみ
+- (id)omitProcessWithCoordinate:(NSNumber *)aCoordinate andMore:(id)something andFlag:(BOOL)flag
+{
+    // y,x座標からNSNumberクラスのオブジェクトで表された座標に変換するブロック
+    NSNumber *(^makeCooBlock)(int,int)=^(int s, int t) {
+        return [NSNumber numberWithInt:s*10+t];
+    };
+    
+    int enemy = turn==BLACK ? WHITE : BLACK;
     // 座標を取得
     int y=[aCoordinate intValue]/10;
     int x=[aCoordinate intValue]%10;
     
-    BOOL poss=NO; // うてるかどうか
-    
-    // 誰の駒であるかYES,NOで返すブロック
-    // 仮引数は順に,Y座標,X座標,誰(0:空白 1:黒 2:白)
-    BOOL (^whoseBlock)(int,int,int)=^(int a, int b, int whose) {
-        BOOL isWho=NO;
-        MGGPiece *tmpP2=[[board objectAtIndex:a] objectAtIndex:b];
-        if (tmpP2.belong==whose) {
-            isWho=YES;
-        }
-        return isWho;
-    };
-    
-    // そもそも受け取った座標のところは空白かどうか
-    if (whoseBlock(y,x,EMPTY)) {
-        // 相手
-        int enemy=(turn==BLACK ? WHITE : BLACK);
-        
-        NSMutableArray *cooArray=[NSMutableArray array]; // うてる方向セット
-        
-        int i,j,k=0;
-        // まずは周囲１マスを調べる
-        for (i=y-1; i<=y+1; i++) {
-            for (j=x-1; j<=x+1; j++,k++) {
-                // 盤面に収まっていることを確認、y,xの部分はのぞく
-                if (i>=0 && i<WIDTH && j>=0 && j<WIDTH && !(i==y && j==x)) {
-                    if (whoseBlock(i,j,enemy)) {
-                        // cooArrayに追加
-                        [cooArray addObject:[NSNumber numberWithInt:k]];
+    // 左上から調べていく
+    for (int i=y-1; i<=y+1; i++) {
+        for (int j=x-1; j<=x+1; j++) {
+            // おこうとしている場所と盤面外はのぞく
+            if ((i==y && j==x) || i<0 || j<0 || i>=WIDTH || j>=WIDTH) continue;
+            
+            // まずは周囲１マスに相手の駒があるか走査、あれば引き続き調べる
+            if ([self whosePiece:enemy atCoordinate:makeCooBlock(i,j)]) {
+                for (int a=i,b=j,dy=i-y,dx=j-x; a>=0 && a<WIDTH && b>=0 && b<WIDTH; a+=dy,b+=dx) {
+                    // flag==YESのときひっくり返す
+                    // flag==NOのとき走査のみ
+                    if (flag) {
+                        if ([self whosePiece:EMPTY atCoordinate:makeCooBlock(a,b)]) { // 空白ならbreak
+                            break;
+                        } else if ([self whosePiece:turn atCoordinate:makeCooBlock(a,b)]) { // 自分の駒なら
+                            // ひっくり返しながらかえる
+                            MGGPiece *tmpP;
+                            for (a-=dy,b-=dx; a!=y || b!=x; a-=dy,b-=dx) {
+                                tmpP=[[board objectAtIndex:a] objectAtIndex:b];
+                                tmpP.belong=turn;
+                                tmpP.canPut=NO;
+                                [something addObject:makeCooBlock(a,b)];
+                            }
+                            break;
+
+                        }
+                    } else {
+                        if (![self whosePiece:enemy atCoordinate:makeCooBlock(a,b)]) {
+                            if ([something boolValue]==YES) continue;
+                            something=[NSNumber numberWithBool:[self whosePiece:turn atCoordinate:makeCooBlock(a,b)]];
+                            break;
+                        }
                     }
                 }
             }
         }
-        
-        // cooArrayを高速列挙する
-        // myCooに代入される値について:
-        // 左上から右方向へ0,1,2,次の列左から3,4,5(ただし4は必ず入っていない),最終列左から6,7,8
-        NSMutableArray *cooArray2=[NSMutableArray array];
-        for (NSNumber *myCoo in cooArray) {
-            switch ([myCoo intValue]) {
-                case 0:
-                    // 左上方向
-                    for (i=y-2,j=x-2; i>=0 && j>=0; i--,j--) {
-                        if (whoseBlock(i,j,EMPTY)) { // 空白なら
-                            break;
-                        } else if (whoseBlock(i,j,turn)) { // 自分の駒なら
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 1:
-                    // 上方向
-                    for (i=y-2,j=x; i>=0; i--) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 2:
-                    // 右上
-                    for (i=y-2,j=x+2; i>=0 && j<WIDTH; i--,j++) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 3:
-                    // 左
-                    for (i=y,j=x-2; j>=0; j--) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 5:
-                    // 右
-                    for (i=y,j=x+2; j<WIDTH; j++) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 6:
-                    // 左下
-                    for (i=y+2,j=x-2; i<WIDTH && j>=0; i++,j--) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 7:
-                    // 下
-                    for (i=y+2,j=x; i<WIDTH; i++) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-                case 8:
-                    // 右下
-                    for (i=y+2,j=x+2; i<WIDTH && j<WIDTH; i++,j++) {
-                        if (whoseBlock(i,j,EMPTY)) {
-                            break;
-                        } else if (whoseBlock(i,j,turn)) {
-                            [cooArray2 addObject:[NSNumber numberWithBool:YES]];
-                            break;
-                        }
-                    }
-                    break;
-            }
-        }
-        
-        // cooArray2の要素数を数える
-        // もしうてるのならば要素数は０でない
-        NSUInteger n=[cooArray2 count];
-        if (n!=0) {
-            poss=YES;
-        }
-
     }
+    return something;
+}
+
+- (BOOL)canIPutOn:(NSNumber *)aCoordinate
+{
+    BOOL poss=NO; // うてるかどうか
+    
+    if ([self whosePiece:EMPTY atCoordinate:aCoordinate]) { // そもそもその座標は空白か
+        id tmp=[self omitProcessWithCoordinate:aCoordinate andMore:[NSNumber numberWithBool:poss] andFlag:NO];
+        poss=[tmp boolValue];
+    }
+
     
     return poss;
 }
 
+
 - (NSArray *)whereCanIPut
 {
+    // y,x座標からNSNumberクラスのオブジェクトの座標に変換するブロック
+    NSNumber *(^makeCooBlock)(int,int)=^(int s,int t) {
+        return [NSNumber numberWithInt:s*10+t];
+    };
+    
     // うてる座標を格納する配列の元
     NSMutableArray *myCandidate=[NSMutableArray array];
     
     // 盤面左上から順に更新して行く
-    int i,j;
-    for (i=0; i<WIDTH; i++) {
-        NSMutableArray *tmpCol=[board objectAtIndex:i];
-        for (j=0; j<WIDTH; j++) {
-            MGGPiece *tmpPiece=[tmpCol objectAtIndex:j];
-            NSNumber *tmpNum=[NSNumber numberWithInt:(i*10+j)];
-            tmpPiece.canPut=[self canIPutOn:tmpNum]; // 更新
+    for (int i=0; i<WIDTH; i++) {
+        for (int j=0; j<WIDTH; j++) {
+            MGGPiece *tmpPiece=[[board objectAtIndex:i] objectAtIndex:j];
+            tmpPiece.canPut=[self canIPutOn:makeCooBlock(i,j)]; // 更新
             if (tmpPiece.canPut) {
-                [myCandidate addObject:tmpNum];
+                [myCandidate addObject:makeCooBlock(i,j)];
             }
         }
     }
@@ -229,210 +159,35 @@
     return [myCandidate copy];
 }
 
+
 - (NSArray *)putPieceAt:(NSNumber *)aCoordinate
 {
-    int y=[aCoordinate intValue]/10;
-    int x=[aCoordinate intValue]%10;
-    
-    int enemy=(turn==BLACK ? WHITE : BLACK);
-    
-    // 駒をおく
-    NSMutableArray *tmpA=[board objectAtIndex:y];
-    MGGPiece *tmpP=[tmpA objectAtIndex:x];
-    
-    tmpP.belong=turn;
-    tmpP.canPut=NO;
-    
-    // 上から時計回りに走査してひっくり返していく
-    BOOL (^whoseBlock)(int,int,int)=^(int a, int b, int whose) {
-        BOOL isWho=NO;
-        MGGPiece *tmpP2=[[board objectAtIndex:a] objectAtIndex:b];
-        if (tmpP2.belong==whose) {
-            isWho=YES;
-        }
-        return isWho;
-    };
-    
+    // ひっくり返したところ一覧
+    // もしAIが不正な場所を指定した場合、空の配列がかえる
     NSMutableArray *reverse=[NSMutableArray array];
-    NSMutableArray *cndt=[NSMutableArray array];
-    int i,j,k=0;
-    // まずは周囲１マスを調べる
-    for (i=y-1; i<=y+1; i++) {
-        for (j=x-1; j<=x+1; j++,k++) {
-            if (i>=0 && j>=0 && i<WIDTH && j<WIDTH && !(i==y && j==x)) {
-                if (whoseBlock(i,j,enemy)) {
-                    [cndt addObject:[NSNumber numberWithInt:k]];
-                }
-            }
-        }
-    }
-    
-    // 走査しきったあと、戻りながらひっくり返し、かつ記録していく
-    for (NSNumber *tmpnum in cndt) {
-        switch ([tmpnum intValue]) {
-            case 0:
-                // 左上
-                for (i=y-2,j=x-2,k=0; i>=0 && j>=0; i--,j--) {
-                    if (whoseBlock(i,j,EMPTY)) { // 途中空白があればひっくり返せない
-                        k--; // フラグとして利用
-                        break;
-                    } else if (whoseBlock(i,j,turn)) { // 自分の駒に出会った時点で引き返す
-                        break;
-                    }
-                }
-                if (k==0 && i>=0 && j>=0) { // ひっくり返せるとき
-                    for (i++,j++; i<y; i++,j++) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]]; // ひっくり返したところリストに追加
-                    }
-                }
-                break;
-            case 1:
-                // 上
-                for (i=y-2,j=x,k=0; i>=0; i--) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && i>=0) {
-                    for (i++; i<y; i++) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-            case 2:
-                // 右上
-                for (i=y-2,j=x+2,k=0; i>=0 && j<WIDTH; i--,j++) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && i>=0 && j<WIDTH) {
-                    for (i++,j--; i<y; i++,j--) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-            case 3:
-                // 左
-                for (i=y,j=x-2,k=0; j>=0; j--) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && j>=0) {
-                    for (j++; j<x; j++) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-            case 5:
-                //右
-                for (i=y,j=x+2,k=0; j<WIDTH; j++) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && j<WIDTH) {
-                    for (j--; j>x; j--) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-            case 6:
-                // 左下
-                for (i=y+2,j=x-2,k=0; i<WIDTH && j>=0; i++,j--) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && i<WIDTH && j>=0) {
-                    for (i--,j++; i>y; i--,j++) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-            case 7:
-                // 下
-                for (i=y+2,j=x,k=0; i<WIDTH; i++) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && i<WIDTH) {
-                    for (i--; i>y; i--)  {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-            case 8:
-                // 右下
-                for (i=y+2,j=x+2,k=0; i<WIDTH && j<WIDTH; i++,j++) {
-                    if (whoseBlock(i,j,EMPTY)) {
-                        k--;
-                        break;
-                    } else if (whoseBlock(i,j,turn)) {
-                        break;
-                    }
-                }
-                if (k==0 && i<WIDTH && j<WIDTH) {
-                    for (i--,j--; i>y; i--,j--) {
-                        tmpP=[[board objectAtIndex:i] objectAtIndex:j];
-                        tmpP.belong=turn;
-                        tmpP.canPut=NO;
-                        [reverse addObject:[NSNumber numberWithInt:(i*10+j)]];
-                    }
-                }
-                break;
-        }
-        
+    if ([self canIPutOn:aCoordinate]) {
+
+        int y=[aCoordinate intValue]/10;
+        int x=[aCoordinate intValue]%10;
+
+        // 駒をおく
+        MGGPiece *tmpP=[[board objectAtIndex:y] objectAtIndex:x];
+        tmpP.belong=turn;
+        tmpP.canPut=NO;
+        id tmp=[self omitProcessWithCoordinate:aCoordinate andMore:[NSMutableArray array] andFlag:YES];
+        reverse=[NSMutableArray arrayWithArray:tmp];
+
     }
     
     return [reverse copy];
 }
 
+
 - (void)changeTurn
 {
     turn=turn==BLACK ? WHITE : BLACK;
 }
+
 
 - (int)countPieceOf:(int)whom
 {

@@ -1,4 +1,3 @@
-﻿
 
 #import <Foundation/Foundation.h>
 #import "MGGBoard.h"

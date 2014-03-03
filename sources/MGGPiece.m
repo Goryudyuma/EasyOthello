@@ -1,6 +1,4 @@
-﻿
-
-#import "MGGPiece.h"
+﻿#import "MGGPiece.h"
 
 @implementation MGGPiece
 
