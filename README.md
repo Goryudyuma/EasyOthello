@@ -13,9 +13,9 @@ AIの仕様
 
 .hファイル↓
 
-#import <Foundation/Foundation.h>
-#import "MGGAIDelegate.h"
-#import "MGGBoard.h"
+＃import <Foundation/Foundation.h>
+＃import "MGGAIDelegate.h"
+＃import "MGGBoard.h"
 
 @class MGGBoard;
 
@@ -32,7 +32,7 @@ AIの仕様
 
 .mファイル↓
 
-#import "独自クラス名.h"
+＃import "独自クラス名.h"
 
 @implementation 独自クラス名
 
