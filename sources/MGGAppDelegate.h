@@ -5,7 +5,9 @@
 #import "MGGPlayer.h"
 #import "MGGGameMaster.h"
 #import "MGGStrage.h"
+#import "MGGGameController.h"
 
+@class MGGGameController;
 @class MGGBoard;
 @class MGGPlayer;
 @class MGGGameMaster;
@@ -14,13 +16,9 @@
 @interface MGGAppDelegate : NSObject <NSApplicationDelegate>
 {
     NSMutableArray *outlets; // 盤面のアウトレット集（可変二次配列)
-    MGGBoard *mainBoard; // 試合に使う盤面
-    MGGPlayer *firstPlayer, *secondPlayer; // 先手、後手
-    MGGGameMaster *ourMaster; // ゲームの状況判断を司る
-    MGGStrage *ourStrage; // 各種記録を格納するためのオブジェクト
-    NSArray *candidate; // うてる場所一覧
+    MGGGameController *myGameController; // ゲームの進行部分のコントローラ
     int frequency; // 何連戦するか
-    BOOL isFreq; // 連戦か単戦か
+    int endNum; // 何回連続でゲームが終了したのか。
 }
 
 @property (assign) IBOutlet NSWindow *window;
@@ -96,9 +94,12 @@
 @property (weak) IBOutlet NSTextField *firstCounter;
 @property (weak) IBOutlet NSTextField *secondCounter;
 
+// 連戦数テキストフィールド
+@property (weak) IBOutlet NSTextField *howManyGame;
 
-- (void)playerTurnIsStarted; // 手番開始の処理
-- (void)playerTurnWillBeFinishedWithCandidate:(NSNumber *)aCand; // 手番終了の処理
+
+- (void)startTurn; // 手番の処理
+- (void)renewalImage; // 盤面の画像更新
 
 - (IBAction)changeManual:(id)sender; // 手動かAIか切り替える tag==1:黒 2:白
 - (IBAction)putPiece:(NSButton *)sender; //手動時の駒おき

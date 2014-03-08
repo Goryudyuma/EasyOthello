@@ -1,28 +1,18 @@
 ﻿
 
 #import "MGGStrage.h"
-#import "MGGSampleAI.h"
-#import "MGG1AI.h"
-#import "MGG2AI.h"
 #import <stdio.h>
-
-@class MGGSampleAI;
-@class MGG1AI;
-@class MGG2AI;
 
 @implementation MGGStrage
 
-@synthesize AIArray;
 @synthesize gameRecord;
 @synthesize freqRecord;
 
 // 初期化
 - (id)initWithNewGame
 {
-    gameRecord=[NSMutableArray array];
-    freqRecord=[NSMutableArray array];
-    AIArray=[NSArray arrayWithObjects:
-             [MGGSampleAI new],[MGG1AI new],[MGG2AI new], nil];
+    gameRecord=[[NSMutableArray alloc] init];
+    freqRecord=[[NSMutableArray alloc] init];
     
     return self;
 }
@@ -69,8 +59,13 @@
 - (BOOL)write:(NSMutableArray *)aData ToCSV:(NSString *)filePath
 {
     // csvの形式に則り記述する
+    // filepathがnilだった場合はtitleへの追記とする
+    NSString *openType= filePath!=nil ? @"w" : @"a";
+    if (filePath==nil) {
+        filePath=title;
+    }
     int i=1;
-    FILE *fp=fopen([filePath UTF8String],"w");
+    FILE *fp=fopen([filePath UTF8String],[openType UTF8String]);
     for (NSString *datum in aData) {
         // まずは分解
         // 境界を探す
@@ -137,15 +132,33 @@
 }
 
 
-// 連戦時の勝敗表を生成(csv)
-- (BOOL)writeAndOutputRecordOf:(int)winner andRemain:(int)freq
-{
-    
-    return [self write:freqRecord ToCSV:[self createFilePathWithExtension:@"csv"]];
-}
-
 - (void)recordManyWithWinner:(int)winner andRemain:(int)remain
 {
     [freqRecord addObject:[NSString stringWithFormat:@"%d %d",remain,winner]];
+}
+
+- (void)makeTitle
+{
+    // ファイルのパス、名前を決定する
+    title=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSDateFormatter *tmpDF=[NSDateFormatter new];
+    [tmpDF setDateFormat:@"yyyMMddHHmmssSSS"];
+    NSString *tmp=[NSString stringWithFormat:@"EasyOthelloAIvsAI%@.csv",[tmpDF stringFromDate:[NSDate date]]];
+    title=[title stringByAppendingPathComponent:tmp];
+    
+    // ファイルを作成する
+    FILE *fp;
+    fp=fopen([title UTF8String],"w");
+    fclose(fp);
+    
+}
+
+- (void)outputSeriesOfGame
+{
+    // ファイルへの追記
+    [self write:freqRecord ToCSV:nil];
+    
+    // データを保持していた配列を空にする
+    [freqRecord removeAllObjects];
 }
 @end

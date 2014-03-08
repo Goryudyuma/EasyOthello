@@ -12,6 +12,6 @@
 
 - (id)initWithNewGame; // 新規対局用に初期化（空白、うてない）
 
-- (id)createCopyOf:(MGGPiece *)aPiece; // コピーを作る
+- (MGGPiece *)createCopy; // コピーを作る
 
 @end

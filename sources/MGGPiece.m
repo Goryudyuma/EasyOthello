@@ -1,4 +1,6 @@
-﻿#import "MGGPiece.h"
+﻿
+
+#import "MGGPiece.h"
 
 @implementation MGGPiece
 
@@ -13,16 +15,13 @@
     return self;
 }
 
-- (id)createCopyOf:(MGGPiece *)aPiece
+- (MGGPiece *)createCopy
 {
-    int tmpBelong;
-    BOOL tmpCanPut;
-    tmpBelong=aPiece.belong;
-    tmpCanPut=aPiece.canPut;
+    MGGPiece *newPiece=[[MGGPiece alloc] init];
+    newPiece.belong=belong;
+    newPiece.canPut=canPut;
     
-    belong=tmpBelong;
-    canPut=tmpCanPut;
-    
-    return self;
+    return newPiece;
 }
+
 @end

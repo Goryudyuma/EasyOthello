@@ -8,12 +8,11 @@
 {
     NSMutableArray *gameRecord; // 棋譜の記録のための可変配列
     NSMutableArray *freqRecord; // 連戦時の勝敗記録
-    NSArray *AIArray; // AI集
+    NSString *title; // 連戦時の記録ファイル名保持用
 }
 
-@property (readonly) NSArray *AIArray;
 @property NSMutableArray *gameRecord;
-@property (readonly) NSMutableArray *freqRecord;
+@property NSMutableArray *freqRecord;
 
 - (id)initWithNewGame; // 新規対局用の初期化
 
@@ -30,6 +29,7 @@
 
 // csvファイルを生成する
 // 生成に成功すればYESを返す
+// filePathがnilを受け取った場合はtitleへの追記とする
 - (BOOL)write:(NSMutableArray *)aData ToCSV:(NSString *)filePath;
 
 // plistファイル生成の独自メソッド
@@ -39,10 +39,16 @@
 // 成功するとYESを返す
 - (BOOL)createRecordFile;
 
-// 連戦時の勝敗記録、書き出し
-- (BOOL)writeAndOutputRecordOf:(int)winner andRemain:(int)freq;
-
 // 連戦時の記録
 - (void)recordManyWithWinner:(int)winner andRemain:(int)remain;
 
+// AI同士の連戦データの書き出しファイル名の決定
+// ファイル名はEasyOthello+1PのAIindex+vs+2PのAIindex+in+ファイル名作成時の時間.csvとする
+// 仮引数は順に1PのAIのindex,2PのAIのindex
+// 同時にファイルも作成する
+- (void)makeTitle;
+
+// 連戦時の記録をファイルへ書き出す
+// 書き出したあとにデータを保持していた配列を初期化する
+- (void)outputSeriesOfGame;
 @end
