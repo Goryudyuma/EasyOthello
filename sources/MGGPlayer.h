@@ -1,10 +1,3 @@
-//
-//  MGGPlayer.h
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
 
 #import <Foundation/Foundation.h>
 #import "MGGBoard.h"
@@ -15,13 +8,18 @@
 {
     int turn; // 自分の手番 1:黒 2:白（MGGBoardなどに合わせている)
     BOOL isManual; // 手動かどうか
+    NSArray *myAI; // 使うAI
+    NSUInteger AIIndex; // AIのindex
 }
 
 @property BOOL isManual;
+@property (readonly) NSArray *myAI;
+@property (readonly) NSUInteger AIIndex;
 
-- (id)initForFirstPlayer; // 先手用(手動)
-- (id)initForSecondPlayer; // 後手用(手動)
+- (id)initForPlayer:(int)myTurn; // １：黒（先手）　２：白（後手）
 
-- (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard byAI:(id)myAI; // うつ場所を決定し座標を返す
+- (void)changeMyAIWithIndex:(NSUInteger)index; // isManualがYESならnilを、NOなら配列をつくる。NOなら使うAIも指定する。YESのとき仮引数はなんでもよい
+
+- (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard; // うつ場所を決定し座標を返す
 
 @end

@@ -1,10 +1,4 @@
-//
-//  MGGSampleAI.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGSampleAI.h"
 #import <time.h>
@@ -17,9 +11,13 @@
     // うてる場所一覧を取得
     NSArray *cndt=[aBoard whereCanIPut];
     
-    srand((unsigned)time(NULL));
+    // 同じ乱数を防ぐ
+    if (!srandFlag) {
+        srand((unsigned)time(NULL));
+        srandFlag=YES;
+    }
     
-    NSUInteger n=[cndt count]; // 要素数を取得
+    NSUInteger n=[cndt count];
     
     // うつ場所をランダムで決める
     return [cndt objectAtIndex:rand()%n];

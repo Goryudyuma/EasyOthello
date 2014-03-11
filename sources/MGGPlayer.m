@@ -1,42 +1,52 @@
-//
-//  MGGPlayer.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGPlayer.h"
 #import "MGGSampleAI.h"
+#import "MGG1AI.h"
+#import "MGG2AI.h"
+#define END -4
 
 @class MGGSampleAI;
+@class MGG1AI;
+@class MGG2AI;
 
 @implementation MGGPlayer
 
 @synthesize isManual;
+@synthesize myAI;
+@synthesize AIIndex;
 
-- (id)initForFirstPlayer
+- (id)initForPlayer:(int)myTurn
 {
-    turn=1;
+    turn=myTurn;
     isManual=YES;
+    myAI=nil;
+    AIIndex=0;
     
     return self;
 }
 
-- (id)initForSecondPlayer
+- (void)changeMyAIWithIndex:(NSUInteger)index
 {
-    turn=2;
-    isManual=YES;
-    
-    return self;
+    if (isManual) {
+        myAI=nil;
+    } else {
+        // まだ配列が作られていない時だけ配列を作る
+        if ([myAI count]==0) {
+            myAI=[NSArray arrayWithObjects:
+                  [MGGSampleAI new],[MGG1AI new],[MGG2AI new], nil];
+        }
+        AIIndex=index;
+    }
 }
 
-- (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard byAI:(id)myAI
+
+- (NSNumber *)putOnThisCoordinate:(MGGBoard *)aBoard
 {
-    NSNumber *myCoordinate;
+    NSNumber *myCoordinate=[[myAI objectAtIndex:AIIndex] whereShouldIPutOn:[aBoard createCopy]];
     
-    myCoordinate=[myAI whereShouldIPutOn:aBoard]; // 書き換え部分
-    
-    return myCoordinate;
+    // 不正な場所をAIが指定した場合は-4を返す
+    return [aBoard canIPutOn:myCoordinate] ? myCoordinate : [NSNumber numberWithInt:-4];
 }
+
 @end

@@ -1,17 +1,13 @@
-//
-//  MGGAppDelegate.h
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+
 
 #import <Cocoa/Cocoa.h>
 #import "MGGBoard.h"
 #import "MGGPlayer.h"
 #import "MGGGameMaster.h"
 #import "MGGStrage.h"
+#import "MGGGameController.h"
 
+@class MGGGameController;
 @class MGGBoard;
 @class MGGPlayer;
 @class MGGGameMaster;
@@ -20,16 +16,13 @@
 @interface MGGAppDelegate : NSObject <NSApplicationDelegate>
 {
     NSMutableArray *outlets; // 盤面のアウトレット集（可変二次配列)
-    MGGBoard *mainBoard; // 試合に使う盤面
-    MGGPlayer *firstPlayer, *secondPlayer; // 先手、後手
-    MGGGameMaster *ourMaster; // ゲームの状況判断を司る
-    MGGStrage *ourStrage; // 各種記録を格納するためのオブジェクト
-    NSArray *candidate; // うてる場所一覧
+    MGGGameController *myGameController; // ゲームの進行部分のコントローラ
+    int frequency; // 何連戦するか
+    int endNum; // 何回連続でゲームが終了したのか。
 }
 
 @property (assign) IBOutlet NSWindow *window;
-@property NSMutableArray *outlets;
-
+@property (readonly) NSMutableArray *outlets;
 
 // 盤面のアウトレット
 @property (weak) IBOutlet NSButton *p00;
@@ -97,12 +90,21 @@
 @property (weak) IBOutlet NSButton *p76;
 @property (weak) IBOutlet NSButton *p77;
 
-- (void)playerTurnIsStarted; // 手番開始の処理
-- (void)playerTurnWillBeFinishedWithCandidate:(NSNumber *)aCand; // 手番終了の処理
+// 枚数を表示
+@property (weak) IBOutlet NSTextField *firstCounter;
+@property (weak) IBOutlet NSTextField *secondCounter;
 
-- (IBAction)changeManual:(NSButton *)sender; // 手動かAIか切り替える tag==1:黒 2:白
+// 連戦数テキストフィールド
+@property (weak) IBOutlet NSTextField *howManyGame;
+
+
+- (void)startTurn; // 手番の処理
+- (void)renewalImage; // 盤面の画像更新
+
+- (IBAction)changeManual:(id)sender; // 手動かAIか切り替える tag==1:黒 2:白
 - (IBAction)putPiece:(NSButton *)sender; //手動時の駒おき
 - (IBAction)startNewGame:(NSButton *)sender; // NewGameボタンを押した時の挙動
-- (IBAction)createRecordFile:(NSButton *)sender; // 棋譜をplistファイル形式で生成する
+- (IBAction)createRecordFile:(NSButton *)sender; // 棋譜をplist or csvファイル形式で生成する
+- (IBAction)doManyGames:(id)sender;
 
 @end

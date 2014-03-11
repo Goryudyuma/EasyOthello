@@ -1,10 +1,4 @@
-//
-//  MGGPiece.m
-//  Easy Othello
-//
-//  Created by 藤森浩平 on 2014/02/27.
-//  Copyright (c) 2014年 藤森浩平. All rights reserved.
-//
+﻿
 
 #import "MGGPiece.h"
 
@@ -19,6 +13,15 @@
     canPut=NO;
     
     return self;
+}
+
+- (MGGPiece *)createCopy
+{
+    MGGPiece *newPiece=[[MGGPiece alloc] init];
+    newPiece.belong=belong;
+    newPiece.canPut=canPut;
+    
+    return newPiece;
 }
 
 @end
