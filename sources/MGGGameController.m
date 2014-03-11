@@ -81,16 +81,13 @@
 {
     NSNumber *tmpNum=aCand;
     NSMutableArray *reverse=[[NSMutableArray alloc] init];
-    // nil（不正な場所を指定された）なら空の配列を返す(パスでも空の配列)
-    if (tmpNum!=nil) {
-        if ([tmpNum intValue]>=0) { // パスでないなら
-            reverse=[mainBoard putPieceAt:tmpNum];
-            // うった場所も加えておく
-            [reverse addObject:tmpNum];
-        }
-        // 棋譜に記録
-        [ourStorage addRecord:([tmpNum intValue]>=0 ? tmpNum : nil) andBoard:mainBoard];
+    if ([tmpNum intValue]>=0) { // パスでないなら
+        reverse=[mainBoard putPieceAt:tmpNum];
+        // うった場所も加えておく
+        [reverse addObject:tmpNum];
     }
+    // 棋譜に記録
+    [ourStorage addRecord:([tmpNum intValue]>=0 ? tmpNum : nil) andBoard:mainBoard];
     
     // ターン変更
     [mainBoard changeTurn];

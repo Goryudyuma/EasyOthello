@@ -1,4 +1,6 @@
-﻿#import "MGGBoard.h"
+﻿
+
+#import "MGGBoard.h"
 #import "MGGPiece.h"
 #define WIDTH 8
 #define EMPTY 0

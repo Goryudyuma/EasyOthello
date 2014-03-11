@@ -34,7 +34,7 @@
         // まだ配列が作られていない時だけ配列を作る
         if ([myAI count]==0) {
             myAI=[NSArray arrayWithObjects:
-                  [MGGSampleAI new],[MGG1AI new],[MGG2AI new], nil];
+                  [MGGSampleAI new],[MGG1AI new],[MGG2AI new],[MGG2AI new], nil];
         }
         AIIndex=index;
     }
@@ -46,7 +46,7 @@
     NSNumber *myCoordinate=[[myAI objectAtIndex:AIIndex] whereShouldIPutOn:[aBoard createCopy]];
     
     // 不正な場所をAIが指定した場合は-4を返す
-    return [aBoard canIPutOn:myCoordinate] ? myCoordinate : [NSNumber numberWithInt:-4];
+    return [aBoard canIPutOn:myCoordinate] ? myCoordinate : [NSNumber numberWithInt:END];
 }
 
 @end
