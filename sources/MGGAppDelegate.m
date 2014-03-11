@@ -68,53 +68,34 @@
 - (void)startTurn
 {
     
-    // AI同士のとき
-    if (!myGameController.firstPlayer.isManual && !myGameController.secondPlayer.isManual) {
-        // 決められた回数だけ繰り返す
-        NSNumber *judgement;
-        while (endNum<frequency) {
-            judgement=[myGameController playerTurnIsStarted];
-            switch ([judgement intValue]) {
-                case GAMEOVER:
-                    [myGameController gameIsOverWithRemain:[NSNumber numberWithUnsignedInt:endNum]];
-                    endNum++;
-                    // ここで初期化をする
-                    if (endNum!=frequency) {
-                        myGameController=[myGameController initForSeriesGame];
-                    }
-                    break;
-                case PASS:
-                    [myGameController playerTurnWillBeFinishedWithCandidate:[NSNumber numberWithInt:-1]];
-                    break;
-                    
-                default:
-                    if ([judgement intValue]==END) return;
-                    [myGameController playerTurnWillBeFinishedWithCandidate:judgement];
-                    break;
+    NSNumber *judgement;
+    while (endNum<frequency) {
+        judgement=[myGameController playerTurnIsStarted];
+        if ([judgement intValue]==GAMEOVER) {
+            // 対局終了
+            [myGameController gameIsOverWithRemain:[NSNumber numberWithUnsignedInt:endNum]];
+            endNum++;
+            if (endNum!=frequency && frequency!=1) {
+                // 連戦を続ける為の初期化
+                myGameController=[myGameController initForSeriesGame];
+            } else {
+                [self renewalImage];
+            }
+
+        } else if ([judgement intValue]==MANUAL) {
+            // マニュアル操作のとき
+            break;
+        } else if ([judgement intValue]==END) {
+            // 不正な座標をAIが指定したとき
+            return;
+        } else {
+            // AIまたはパス
+            [myGameController playerTurnWillBeFinishedWithCandidate:judgement];
+            if (frequency==1) {
+                // 連戦でなければ画像更新
+                [self renewalImage];
             }
         }
-        [self renewalImage];
-    } else { // マニュアル操作を含むとき
-        NSNumber *judgement=[myGameController playerTurnIsStarted];
-        switch ([judgement intValue]) {
-            case GAMEOVER:
-                [myGameController gameIsOverWithRemain:[NSNumber numberWithInt:endNum]];
-                break;
-            case PASS:
-                [myGameController playerTurnWillBeFinishedWithCandidate:[NSNumber numberWithInt:-1]];
-                [self startTurn];
-                break;
-            case MANUAL:
-                break;
-                
-            default:
-                if ([judgement intValue]==END) return;
-                [myGameController playerTurnWillBeFinishedWithCandidate:judgement];
-                [self renewalImage];
-                [self startTurn];
-                break;
-        }
-        
     }
 }
 
